@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/home_screen.dart';
+import 'screens/main_navigation_screen.dart';
 import 'utils/app_theme.dart';
 
 class FinoteApp extends StatelessWidget {
@@ -14,7 +14,7 @@ class FinoteApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
       themeMode: ThemeMode.system,
-      home: const HomeScreen(),
+      home: const MainNavigationScreen(),
     );
   }
 }
