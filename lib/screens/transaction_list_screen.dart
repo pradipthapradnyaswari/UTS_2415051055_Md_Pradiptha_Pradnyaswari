@@ -16,6 +16,18 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
+  final TextEditingController _searchController = TextEditingController();
+
+  String _selectedType = 'all';
+  String? _selectedCategory;
+  DateTimeRange? _selectedDateRange;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -86,6 +98,58 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
+  List<TransactionModel> _filterTransactions(
+    List<TransactionModel> transactions,
+  ) {
+    return transactions.where((transaction) {
+      // Filter berdasarkan nama transaksi
+      final query = _searchController.text.trim().toLowerCase();
+      final matchesSearch = transaction.title.toLowerCase().contains(query);
+
+      // Filter berdasarkan jenis transaksi
+      final matchesType =
+          _selectedType == 'all' ||
+          (_selectedType == 'income' && transaction.isIncome) ||
+          (_selectedType == 'expense' && transaction.isExpense);
+
+      // Filter berdasarkan kategori
+      final matchesCategory =
+          _selectedCategory == null ||
+          transaction.category == _selectedCategory;
+
+      // Filter berdasarkan rentang tanggal
+      bool matchesDate = true;
+
+      if (_selectedDateRange != null) {
+        final date = transaction.transactionDate;
+        final start = _selectedDateRange!.start;
+        final end = _selectedDateRange!.end;
+
+        final startDate = DateTime(start.year, start.month, start.day);
+        final endDate = DateTime(end.year, end.month, end.day);
+        final transactionDate = DateTime(date.year, date.month, date.day);
+
+        matchesDate =
+            !transactionDate.isBefore(startDate) &&
+            !transactionDate.isAfter(endDate);
+      }
+
+      return matchesSearch && matchesType && matchesCategory && matchesDate;
+    }).toList();
+  }
+
+  Widget _buildFilterChip({required String label, required String value}) {
+    return ChoiceChip(
+      label: Text(label),
+      selected: _selectedType == value,
+      onSelected: (selected) {
+        setState(() {
+          _selectedType = value;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
@@ -122,6 +186,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
 
     final theme = Theme.of(context);
+    final filteredTransactions = _filterTransactions(transactions);
 
     return ListView(
       padding: const EdgeInsets.all(20),
@@ -155,7 +220,119 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         ),
         const SizedBox(height: 12),
 
-        ...transactions.map(
+        TextField(
+          controller: _searchController,
+          onChanged: (_) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Cari nama transaksi...',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _searchController.text.isNotEmpty
+                ? IconButton(
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.close),
+                  )
+                : null,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        Wrap(
+          spacing: 8,
+          children: [
+            _buildFilterChip(label: 'Semua', value: 'all'),
+            _buildFilterChip(label: 'Pemasukan', value: 'income'),
+            _buildFilterChip(label: 'Pengeluaran', value: 'expense'),
+          ],
+        ),
+
+        const SizedBox(height: 16),
+
+        DropdownButtonFormField<String>(
+          initialValue: _selectedCategory,
+          decoration: InputDecoration(
+            labelText: 'Filter Kategori',
+            prefixIcon: const Icon(Icons.category_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+          hint: const Text('Semua kategori'),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Text('Semua kategori'),
+            ),
+            ...{for (final transaction in transactions) transaction.category}
+                .toList()
+                .map(
+                  (category) => DropdownMenuItem<String>(
+                    value: category,
+                    child: Text(category),
+                  ),
+                ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedCategory = value;
+            });
+          },
+        ),
+
+        const SizedBox(height: 16),
+
+        OutlinedButton.icon(
+          onPressed: () async {
+            final now = DateTime.now();
+
+            final picked = await showDateRangePicker(
+              context: context,
+              firstDate: DateTime(2020),
+              lastDate: DateTime(now.year + 5),
+              initialDateRange: _selectedDateRange,
+              helpText: 'Pilih Rentang Tanggal',
+              cancelText: 'BATAL',
+              confirmText: 'PILIH',
+            );
+
+            if (!mounted || picked == null) return;
+
+            setState(() {
+              _selectedDateRange = picked;
+            });
+          },
+          icon: const Icon(Icons.date_range),
+          label: Text(
+            _selectedDateRange == null
+                ? 'Pilih Rentang Tanggal'
+                : '${_formatDate(_selectedDateRange!.start)} - '
+                      '${_formatDate(_selectedDateRange!.end)}',
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: () {
+              setState(() {
+                _searchController.clear();
+                _selectedType = 'all';
+                _selectedCategory = null;
+                _selectedDateRange = null;
+              });
+            },
+            icon: const Icon(Icons.restart_alt),
+            label: const Text('Reset Filter'),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        ...filteredTransactions.map(
           (transaction) => Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: InkWell(
@@ -171,6 +348,27 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ),
           ),
         ),
+
+        if (filteredTransactions.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 48,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Transaksi tidak ditemukan',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                ],
+              ),
+            ),
+          ),
       ],
     );
   }
