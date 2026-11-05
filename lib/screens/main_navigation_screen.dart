@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../widgets/bottom_nav_bar.dart';
 import 'home_screen.dart';
+import 'transaction_list_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -16,10 +17,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late final List<Widget> _pages = [
     const HomeScreen(),
     const _PlaceholderScreen(title: 'Analisis', icon: Icons.insights_outlined),
-    const _PlaceholderScreen(
-      title: 'Transaksi',
-      icon: Icons.receipt_long_outlined,
-    ),
+    const TransactionListScreen(),
     const _PlaceholderScreen(title: 'Kategori', icon: Icons.category_outlined),
     const _PlaceholderScreen(title: 'Profil', icon: Icons.person_outline),
   ];
