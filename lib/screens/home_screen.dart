@@ -7,6 +7,7 @@ import '../utils/formatters.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/transaction_card.dart';
+import '../widgets/exchange_rate_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -133,6 +134,10 @@ class HomeScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+
+                      const SizedBox(height: 24),
+
+                      const ExchangeRateCard(),
 
                       const SizedBox(height: 28),
 

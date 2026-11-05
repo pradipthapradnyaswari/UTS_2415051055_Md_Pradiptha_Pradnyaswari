@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/exchange_rate_provider.dart';
 import '../widgets/bottom_nav_bar.dart';
 import 'home_screen.dart';
 import 'transaction_list_screen.dart';
@@ -13,6 +15,17 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   int _currentIndex = 0;
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      context.read<ExchangeRateProvider>().fetchExchangeRates();
+    });
+  }
 
   late final List<Widget> _pages = [
     const HomeScreen(),
