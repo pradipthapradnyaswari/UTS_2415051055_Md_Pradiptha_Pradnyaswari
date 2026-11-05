@@ -4,6 +4,13 @@ import '../models/transaction_model.dart';
 import '../utils/formatters.dart';
 import 'edit_transaction_screen.dart';
 
+class TransactionDetailResult {
+  final TransactionModel? transaction;
+  final bool isDeleted;
+
+  const TransactionDetailResult({this.transaction, this.isDeleted = false});
+}
+
 class TransactionDetailScreen extends StatefulWidget {
   final TransactionModel transaction;
 
@@ -34,12 +41,41 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     if (!mounted) return;
 
     if (result != null) {
-      setState(() {
-        _transaction = result;
-      });
-
-      Navigator.pop(context, result);
+      Navigator.pop(context, TransactionDetailResult(transaction: result));
     }
+  }
+
+  Future<void> _deleteTransaction() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Transaksi?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus '
+            '"${_transaction.title}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || confirmed != true) return;
+
+    Navigator.pop(context, const TransactionDetailResult(isDeleted: true));
   }
 
   String _formatDate(DateTime date) {
@@ -147,6 +183,20 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 onPressed: _editTransaction,
                 icon: const Icon(Icons.edit_outlined),
                 label: const Text('Edit Transaksi'),
+              ),
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: OutlinedButton.icon(
+                onPressed: _deleteTransaction,
+                icon: const Icon(Icons.delete_outline),
+                label: const Text('Hapus Transaksi'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
+                ),
               ),
             ),
           ],

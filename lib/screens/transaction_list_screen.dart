@@ -74,32 +74,46 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<void> _openTransactionDetail(TransactionModel transaction) async {
-    final result = await Navigator.push<TransactionModel>(
+    final result = await Navigator.push<TransactionDetailResult>(
       context,
       MaterialPageRoute(
         builder: (context) => TransactionDetailScreen(transaction: transaction),
       ),
     );
 
-    if (!mounted) return;
+    if (!mounted || result == null) return;
 
-    if (result != null) {
-      setState(() {
-        final index = _transactions.indexWhere((item) => item.id == result.id);
+    setState(() {
+      if (result.isDeleted) {
+        _transactions.removeWhere((item) => item.id == transaction.id);
+      } else {
+        final updated = result.transaction;
 
-        if (index != -1) {
-          _transactions[index] = result;
+        if (updated != null) {
+          final index = _transactions.indexWhere(
+            (item) => item.id == updated.id,
+          );
+
+          if (index != -1) {
+            _transactions[index] = updated;
+          }
         }
+      }
 
-        _transactions.sort(
-          (a, b) => b.transactionDate.compareTo(a.transactionDate),
-        );
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Data transaksi berhasil diperbarui!')),
+      _transactions.sort(
+        (a, b) => b.transactionDate.compareTo(a.transactionDate),
       );
-    }
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result.isDeleted
+              ? 'Transaksi berhasil dihapus!'
+              : 'Data transaksi berhasil diperbarui!',
+        ),
+      ),
+    );
   }
 
   @override
