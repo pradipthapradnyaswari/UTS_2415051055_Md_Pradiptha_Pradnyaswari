@@ -188,188 +188,218 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final theme = Theme.of(context);
     final filteredTransactions = _filterTransactions(transactions);
 
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        if (provider.isLoading) const LinearProgressIndicator(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final contentWidth = constraints.maxWidth > 1200
+            ? 1200.0
+            : constraints.maxWidth;
 
-        Text(
-          'Riwayat Transaksi',
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          '${transactions.length} transaksi telah dicatat',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: 20),
+        final crossAxisCount = contentWidth >= 700 ? 2 : 1;
 
-        _buildSummary(context, transactions),
+        return Center(
+          child: SizedBox(
+            width: contentWidth,
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                if (provider.isLoading) const LinearProgressIndicator(),
 
-        const SizedBox(height: 24),
-
-        Text(
-          'Daftar Transaksi',
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        TextField(
-          controller: _searchController,
-          onChanged: (_) => setState(() {}),
-          decoration: InputDecoration(
-            hintText: 'Cari transaksi...',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    onPressed: () {
-                      _searchController.clear();
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.close),
-                  )
-                : null,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        Wrap(
-          spacing: 8,
-          children: [
-            _buildFilterChip(label: 'Semua', value: 'all'),
-            _buildFilterChip(label: 'Pemasukan', value: 'income'),
-            _buildFilterChip(label: 'Pengeluaran', value: 'expense'),
-          ],
-        ),
-
-        const SizedBox(height: 16),
-
-        DropdownButtonFormField<String>(
-          initialValue: _selectedCategory,
-          decoration: InputDecoration(
-            labelText: 'Pilih Kategori',
-            prefixIcon: const Icon(Icons.category_outlined),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
-          ),
-          hint: const Text('Semua kategori'),
-          items: [
-            const DropdownMenuItem<String>(
-              value: null,
-              child: Text('Semua kategori'),
-            ),
-            ...{for (final transaction in transactions) transaction.category}
-                .toList()
-                .map(
-                  (category) => DropdownMenuItem<String>(
-                    value: category,
-                    child: Text(category),
+                Text(
+                  'Riwayat Transaksi',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-          ],
-          onChanged: (value) {
-            setState(() {
-              _selectedCategory = value;
-            });
-          },
-        ),
-
-        const SizedBox(height: 16),
-
-        OutlinedButton.icon(
-          onPressed: () async {
-            final now = DateTime.now();
-
-            final picked = await showDateRangePicker(
-              context: context,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(now.year + 5),
-              initialDateRange: _selectedDateRange,
-              helpText: 'Pilih Periode Tanggal',
-              cancelText: 'BATAL',
-              confirmText: 'TERAPKAN',
-            );
-
-            if (!mounted || picked == null) return;
-
-            setState(() {
-              _selectedDateRange = picked;
-            });
-          },
-          icon: const Icon(Icons.date_range),
-          label: Text(
-            _selectedDateRange == null
-                ? 'Pilih Periode Tanggal'
-                : '${_formatDate(_selectedDateRange!.start)} - '
-                      '${_formatDate(_selectedDateRange!.end)}',
-          ),
-        ),
-
-        const SizedBox(height: 8),
-
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () {
-              setState(() {
-                _searchController.clear();
-                _selectedType = 'all';
-                _selectedCategory = null;
-                _selectedDateRange = null;
-              });
-            },
-            icon: const Icon(Icons.restart_alt),
-            label: const Text('Atur Ulang Filter'),
-          ),
-        ),
-
-        const SizedBox(height: 16),
-
-        ...filteredTransactions.map(
-          (transaction) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: InkWell(
-              onTap: () => _openTransactionDetail(transaction),
-              borderRadius: BorderRadius.circular(12),
-              child: TransactionCard(
-                title: transaction.title,
-                category: transaction.category,
-                date: _formatDate(transaction.transactionDate),
-                amount: _formatAmount(transaction.amount),
-                isIncome: transaction.isIncome,
-              ),
-            ),
-          ),
-        ),
-
-        if (filteredTransactions.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Center(
-              child: Column(
-                children: [
-                  Icon(
-                    Icons.search_off,
-                    size: 48,
+                const SizedBox(height: 6),
+                Text(
+                  '${transactions.length} transaksi telah dicatat',
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Tidak ada transaksi yang sesuai',
-                    style: theme.textTheme.bodyLarge,
+                ),
+                const SizedBox(height: 20),
+
+                _buildSummary(context, transactions),
+
+                const SizedBox(height: 24),
+
+                Text(
+                  'Daftar Transaksi',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+
+                TextField(
+                  controller: _searchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Cari transaksi...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            onPressed: () {
+                              _searchController.clear();
+                              setState(() {});
+                            },
+                            icon: const Icon(Icons.close),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _buildFilterChip(label: 'Semua', value: 'all'),
+                    _buildFilterChip(label: 'Pemasukan', value: 'income'),
+                    _buildFilterChip(label: 'Pengeluaran', value: 'expense'),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<String>(
+                  initialValue: _selectedCategory,
+                  decoration: InputDecoration(
+                    labelText: 'Pilih Kategori',
+                    prefixIcon: const Icon(Icons.category_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  hint: const Text('Semua kategori'),
+                  items: [
+                    const DropdownMenuItem<String>(
+                      value: null,
+                      child: Text('Semua kategori'),
+                    ),
+                    ...{
+                      for (final transaction in transactions)
+                        transaction.category,
+                    }.toList().map(
+                      (category) => DropdownMenuItem<String>(
+                        value: category,
+                        child: Text(category),
+                      ),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final now = DateTime.now();
+
+                    final picked = await showDateRangePicker(
+                      context: context,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(now.year + 5),
+                      initialDateRange: _selectedDateRange,
+                      helpText: 'Pilih Periode Tanggal',
+                      cancelText: 'BATAL',
+                      confirmText: 'TERAPKAN',
+                    );
+
+                    if (!mounted || picked == null) return;
+
+                    setState(() {
+                      _selectedDateRange = picked;
+                    });
+                  },
+                  icon: const Icon(Icons.date_range),
+                  label: Text(
+                    _selectedDateRange == null
+                        ? 'Pilih Periode Tanggal'
+                        : '${_formatDate(_selectedDateRange!.start)} - '
+                              '${_formatDate(_selectedDateRange!.end)}',
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _searchController.clear();
+                        _selectedType = 'all';
+                        _selectedCategory = null;
+                        _selectedDateRange = null;
+                      });
+                    },
+                    icon: const Icon(Icons.restart_alt),
+                    label: const Text('Atur Ulang Filter'),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                if (filteredTransactions.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off,
+                            size: 48,
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Tidak ada transaksi yang sesuai',
+                            style: theme.textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredTransactions.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 8,
+                      mainAxisExtent: 88,
+                    ),
+                    itemBuilder: (context, index) {
+                      final transaction = filteredTransactions[index];
+
+                      return InkWell(
+                        onTap: () => _openTransactionDetail(transaction),
+                        borderRadius: BorderRadius.circular(12),
+                        child: TransactionCard(
+                          title: transaction.title,
+                          category: transaction.category,
+                          date: _formatDate(transaction.transactionDate),
+                          amount: _formatAmount(transaction.amount),
+                          isIncome: transaction.isIncome,
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ),
           ),
-      ],
+        );
+      },
     );
   }
 
