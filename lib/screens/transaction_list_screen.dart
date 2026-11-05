@@ -201,7 +201,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         ),
         const SizedBox(height: 6),
         Text(
-          '${transactions.length} transaksi tercatat',
+          '${transactions.length} transaksi telah dicatat',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -213,7 +213,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         const SizedBox(height: 24),
 
         Text(
-          'Semua Transaksi',
+          'Daftar Transaksi',
           style: theme.textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -224,7 +224,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           controller: _searchController,
           onChanged: (_) => setState(() {}),
           decoration: InputDecoration(
-            hintText: 'Cari nama transaksi...',
+            hintText: 'Cari transaksi...',
             prefixIcon: const Icon(Icons.search),
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
@@ -255,7 +255,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         DropdownButtonFormField<String>(
           initialValue: _selectedCategory,
           decoration: InputDecoration(
-            labelText: 'Filter Kategori',
+            labelText: 'Pilih Kategori',
             prefixIcon: const Icon(Icons.category_outlined),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
           ),
@@ -292,9 +292,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               firstDate: DateTime(2020),
               lastDate: DateTime(now.year + 5),
               initialDateRange: _selectedDateRange,
-              helpText: 'Pilih Rentang Tanggal',
+              helpText: 'Pilih Periode Tanggal',
               cancelText: 'BATAL',
-              confirmText: 'PILIH',
+              confirmText: 'TERAPKAN',
             );
 
             if (!mounted || picked == null) return;
@@ -306,7 +306,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           icon: const Icon(Icons.date_range),
           label: Text(
             _selectedDateRange == null
-                ? 'Pilih Rentang Tanggal'
+                ? 'Pilih Periode Tanggal'
                 : '${_formatDate(_selectedDateRange!.start)} - '
                       '${_formatDate(_selectedDateRange!.end)}',
           ),
@@ -326,7 +326,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               });
             },
             icon: const Icon(Icons.restart_alt),
-            label: const Text('Reset Filter'),
+            label: const Text('Atur Ulang Filter'),
           ),
         ),
 
@@ -362,7 +362,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Transaksi tidak ditemukan',
+                    'Tidak ada transaksi yang sesuai',
                     style: theme.textTheme.bodyLarge,
                   ),
                 ],

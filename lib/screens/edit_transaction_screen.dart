@@ -237,7 +237,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
                   maxLines: 3,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
-                    hintText: 'Tambahkan catatan jika diperlukan',
+                    hintText: 'Tambahkan catatan jika ada',
                     alignLabelWithHint: true,
                     border: OutlineInputBorder(),
                   ),

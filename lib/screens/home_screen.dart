@@ -8,13 +8,27 @@ import '../widgets/balance_card.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/transaction_card.dart';
 import '../widgets/exchange_rate_card.dart';
+import '../providers/notification_provider.dart';
+import 'notifications_screen.dart';
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  final VoidCallback onViewAllTransactions;
+
+  void _showNotifications(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+  }
+
+  const HomeScreen({super.key, required this.onViewAllTransactions});
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransactionProvider>();
+    final notificationProvider = context.watch<NotificationProvider>();
+    final unreadCount = notificationProvider.unreadCount;
+
     final transactions = provider.transactions;
     final theme = Theme.of(context);
 
@@ -38,9 +52,13 @@ class HomeScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            onPressed: () {},
+            onPressed: () => _showNotifications(context),
             tooltip: 'Notifikasi',
-            icon: const Icon(Icons.notifications_none),
+            icon: Badge(
+              isLabelVisible: unreadCount > 0,
+              label: Text(unreadCount > 99 ? '99+' : unreadCount.toString()),
+              child: const Icon(Icons.notifications_none),
+            ),
           ),
           const SizedBox(width: 8),
         ],
@@ -95,7 +113,6 @@ class HomeScreen extends StatelessWidget {
 
                       const SizedBox(height: 24),
 
-                      // Kartu saldo dinamis.
                       BalanceCard(balance: formatRupiah(balance)),
 
                       const SizedBox(height: 24),
@@ -152,7 +169,7 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: onViewAllTransactions,
                             child: const Text('Lihat semua'),
                           ),
                         ],

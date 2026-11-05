@@ -52,7 +52,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         return AlertDialog(
           title: const Text('Hapus Transaksi?'),
           content: Text(
-            'Apakah kamu yakin ingin menghapus '
+            'Apakah kamu yakin ingin menghapus transaksi '
             '"${_transaction.title}"?',
           ),
           actions: [

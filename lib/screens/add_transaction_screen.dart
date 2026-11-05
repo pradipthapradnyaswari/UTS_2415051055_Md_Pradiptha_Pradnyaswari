@@ -147,7 +147,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Nama transaksi wajib diisi';
+                      return 'Nama transaksi harus diisi';
                     }
                     return null;
                   },
@@ -155,7 +155,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                 const SizedBox(height: 20),
 
-                // Nominal transaksi.
                 Text(
                   'Nominal',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -175,13 +174,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Nominal wajib diisi';
+                      return 'Nominal harus diisi';
                     }
 
                     final amount = double.tryParse(value);
 
                     if (amount == null || amount <= 0) {
-                      return 'Masukkan nominal yang valid';
+                      return 'Masukkan nominal yang benar';
                     }
 
                     return null;
@@ -190,7 +189,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                 const SizedBox(height: 20),
 
-                // Kategori transaksi.
                 Text(
                   'Kategori',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -246,7 +244,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                 const SizedBox(height: 20),
 
-                // Catatan tambahan.
                 Text(
                   'Catatan (Opsional)',
                   style: theme.textTheme.titleMedium?.copyWith(
@@ -259,7 +256,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   maxLines: 3,
                   textCapitalization: TextCapitalization.sentences,
                   decoration: const InputDecoration(
-                    hintText: 'Tambahkan catatan jika diperlukan',
+                    hintText: 'Tambahkan catatan jika ada',
                     alignLabelWithHint: true,
                     border: OutlineInputBorder(),
                   ),

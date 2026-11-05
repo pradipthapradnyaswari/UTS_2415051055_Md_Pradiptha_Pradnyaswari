@@ -9,11 +9,11 @@ class ProfileScreen extends StatelessWidget {
   String _getThemeName(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:
-        return 'Light';
+        return 'Terang';
       case ThemeMode.dark:
-        return 'Dark';
+        return 'Gelap';
       case ThemeMode.system:
-        return 'System';
+        return 'Sistem';
     }
   }
 
@@ -150,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Personal Finance Manager',
+                    'Pengelola Keuangan Pribadi',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],

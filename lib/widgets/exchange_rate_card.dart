@@ -34,7 +34,7 @@ class ExchangeRateCard extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  tooltip: 'Perbarui kurs',
+                  tooltip: 'Perbarui nilai tukar',
                   onPressed: provider.isLoading
                       ? null
                       : provider.fetchExchangeRates,
@@ -81,7 +81,7 @@ class ExchangeRateCard extends StatelessWidget {
                   ),
                 ),
             ] else
-              const Text('Data kurs IDR tidak tersedia.'),
+              const Text('Data nilai tukar USD ke IDR tidak tersedia.'),
 
             const SizedBox(height: 12),
             const Divider(),
@@ -102,7 +102,7 @@ class ExchangeRateCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Gagal mengambil data kurs.'),
+        const Text('Gagal mengambil data nilai tukar.'),
         TextButton.icon(
           onPressed: provider.fetchExchangeRates,
           icon: const Icon(Icons.refresh),

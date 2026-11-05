@@ -143,7 +143,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     final balance = income - expense;
 
-    // Data grafik dibuat setelah filteredTransactions tersedia.
     final chartEntries = _createChartEntries(filteredTransactions);
 
     return Scaffold(

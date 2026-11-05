@@ -47,7 +47,7 @@ class CategoryDetailScreen extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  Text('${transactions.length} transaksi'),
+                  Text('${transactions.length} transaksi tercatat'),
                 ],
               ),
             ),

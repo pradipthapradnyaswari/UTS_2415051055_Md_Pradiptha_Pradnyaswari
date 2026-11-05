@@ -31,7 +31,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 
   late final List<Widget> _pages = [
-    const HomeScreen(),
+    HomeScreen(
+      onViewAllTransactions: () {
+        setState(() {
+          _currentIndex = 2;
+        });
+      },
+    ),
     const AnalysisScreen(),
     const TransactionListScreen(),
     const CategoriesScreen(),

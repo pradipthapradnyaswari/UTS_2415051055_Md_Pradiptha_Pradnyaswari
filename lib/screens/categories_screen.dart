@@ -21,9 +21,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     {'name': 'Obat-obatan', 'icon': Icons.medical_services},
     {'name': 'Belanjaan', 'icon': Icons.shopping_bag},
     {'name': 'Uang Sewa', 'icon': Icons.home},
+    {'name': 'Hiburan', 'icon': Icons.movie},
+
+    {'name': 'Uang Saku', 'icon': Icons.account_balance_wallet},
+    {'name': 'Gaji', 'icon': Icons.work},
     {'name': 'Hadiah', 'icon': Icons.card_giftcard},
     {'name': 'Tabungan', 'icon': Icons.savings},
-    {'name': 'Hiburan', 'icon': Icons.movie},
+
     {'name': 'Lainnya', 'icon': Icons.category},
   ];
 
@@ -112,7 +116,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '${filteredTransactions.length} transaksi',
+                        '${filteredTransactions.length} transaksi tercatat',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
@@ -144,7 +148,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                       Text(provider.errorMessage!),
                       TextButton(
                         onPressed: provider.fetchTransactions,
-                        child: const Text('Coba Lagi'),
+                        child: const Text('Coba lagi'),
                       ),
                     ],
                   ),
@@ -224,7 +228,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '$count transaksi',
+                                        '$count transaksi tercatat',
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodySmall,
