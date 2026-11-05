@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/transaction_provider.dart';
 import '../utils/constants.dart';
+import '../utils/formatters.dart';
 import '../widgets/balance_card.dart';
 import '../widgets/summary_card.dart';
 import '../widgets/transaction_card.dart';
@@ -10,6 +13,22 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<TransactionProvider>();
+    final transactions = provider.transactions;
+    final theme = Theme.of(context);
+
+    final totalIncome = transactions
+        .where((transaction) => transaction.isIncome)
+        .fold<double>(0, (total, transaction) => total + transaction.amount);
+
+    final totalExpense = transactions
+        .where((transaction) => transaction.isExpense)
+        .fold<double>(0, (total, transaction) => total + transaction.amount);
+
+    final balance = totalIncome - totalExpense;
+
+    final recentTransactions = transactions.take(3).toList();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -25,7 +44,6 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(width: 8),
         ],
       ),
-
       body: LayoutBuilder(
         builder: (context, constraints) {
           final screenWidth = MediaQuery.sizeOf(context).width;
@@ -43,6 +61,10 @@ class HomeScreen extends StatelessWidget {
           final cardWidth = availableWidth > 600
               ? (availableWidth - 12) / 2
               : availableWidth;
+
+          if (provider.isLoading && transactions.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
           return SingleChildScrollView(
             child: Center(
@@ -64,14 +86,16 @@ class HomeScreen extends StatelessWidget {
                       Text(
                         'Yuk, pantau kondisi keuanganmu hari ini.',
                         style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurface
-                              .withValues(alpha: 0.7),
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.7,
+                          ),
                         ),
                       ),
 
                       const SizedBox(height: 24),
 
-                      const BalanceCard(balance: 'Rp2.500.000'),
+                      // Kartu saldo dinamis.
+                      BalanceCard(balance: formatRupiah(balance)),
 
                       const SizedBox(height: 24),
 
@@ -91,18 +115,18 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           SizedBox(
                             width: cardWidth,
-                            child: const SummaryCard(
+                            child: SummaryCard(
                               title: 'Pemasukan',
-                              amount: 'Rp3.500.000',
+                              amount: formatRupiah(totalIncome),
                               icon: Icons.trending_up,
                               color: AppColors.income,
                             ),
                           ),
                           SizedBox(
                             width: cardWidth,
-                            child: const SummaryCard(
+                            child: SummaryCard(
                               title: 'Pengeluaran',
-                              amount: 'Rp1.000.000',
+                              amount: formatRupiah(totalExpense),
                               icon: Icons.trending_down,
                               color: AppColors.expense,
                             ),
@@ -131,31 +155,84 @@ class HomeScreen extends StatelessWidget {
 
                       const SizedBox(height: 8),
 
-                      const TransactionCard(
-                        title: 'Uang Saku',
-                        category: 'Pemasukan',
-                        amount: 'Rp2.000.000',
-                        date: '05 Nov 2026',
-                        isIncome: true,
-                      ),
-                      const Divider(),
+                      if (provider.errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Gagal memuat data transaksi.',
+                                style: TextStyle(
+                                  color: theme.colorScheme.onErrorContainer,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                provider.errorMessage!,
+                                style: TextStyle(
+                                  color: theme.colorScheme.onErrorContainer,
+                                ),
+                              ),
+                              TextButton.icon(
+                                onPressed: provider.fetchTransactions,
+                                icon: const Icon(Icons.refresh),
+                                label: const Text('Coba lagi'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
 
-                      const TransactionCard(
-                        title: 'Makan Siang',
-                        category: 'Makanan',
-                        amount: 'Rp25.000',
-                        date: '05 Nov 2026',
-                        isIncome: false,
-                      ),
-                      const Divider(),
+                      if (provider.isLoading) const LinearProgressIndicator(),
 
-                      const TransactionCard(
-                        title: 'Transportasi',
-                        category: 'Transportasi',
-                        amount: 'Rp15.000',
-                        date: '04 Nov 2026',
-                        isIncome: false,
-                      ),
+                      if (transactions.isEmpty && provider.errorMessage == null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.receipt_long_outlined,
+                                  size: 48,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Belum ada transaksi.',
+                                  style: TextStyle(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Yuk, catat transaksi pertamamu!',
+                                  style: TextStyle(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                      ...recentTransactions.map((transaction) {
+                        return Column(
+                          children: [
+                            TransactionCard(
+                              title: transaction.title,
+                              category: transaction.category,
+                              amount: formatRupiah(transaction.amount),
+                              date: _formatDate(transaction.transactionDate),
+                              isIncome: transaction.isIncome,
+                            ),
+                            const Divider(),
+                          ],
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -165,5 +242,25 @@ class HomeScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  String _formatDate(DateTime date) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+
+    return '${date.day.toString().padLeft(2, '0')} '
+        '${months[date.month - 1]} ${date.year}';
   }
 }
