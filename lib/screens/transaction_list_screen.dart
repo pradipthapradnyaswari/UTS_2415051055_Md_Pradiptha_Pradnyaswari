@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import 'transaction_detail_screen.dart';
 import '../models/transaction_model.dart';
+import '../providers/transaction_provider.dart';
 import '../utils/formatters.dart';
 import '../widgets/transaction_card.dart';
 import 'add_transaction_screen.dart';
+import 'transaction_detail_screen.dart';
 
 class TransactionListScreen extends StatefulWidget {
   const TransactionListScreen({super.key});
@@ -14,41 +16,15 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final List<TransactionModel> _transactions = [
-    TransactionModel(
-      id: '1',
-      title: 'Uang Saku',
-      amount: 1500000,
-      type: 'income',
-      category: 'Uang Saku',
-      note: 'Uang saku bulanan',
-      transactionDate: DateTime(2026, 11, 5),
-    ),
-    TransactionModel(
-      id: '2',
-      title: 'Makan Siang',
-      amount: 25000,
-      type: 'expense',
-      category: 'Makanan',
-      transactionDate: DateTime(2026, 11, 5),
-    ),
-    TransactionModel(
-      id: '3',
-      title: 'Transportasi',
-      amount: 15000,
-      type: 'expense',
-      category: 'Transportasi',
-      transactionDate: DateTime(2026, 11, 4),
-    ),
-    TransactionModel(
-      id: '4',
-      title: 'Hadiah',
-      amount: 100000,
-      type: 'income',
-      category: 'Hadiah',
-      transactionDate: DateTime(2026, 11, 3),
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<TransactionProvider>().fetchTransactions();
+    });
+  }
 
   Future<void> _openAddTransaction() async {
     final result = await Navigator.push<TransactionModel>(
@@ -56,21 +32,24 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       MaterialPageRoute(builder: (context) => const AddTransactionScreen()),
     );
 
+    if (!mounted || result == null) return;
+
+    final success = await context.read<TransactionProvider>().addTransaction(
+      result,
+    );
+
     if (!mounted) return;
 
-    if (result != null) {
-      setState(() {
-        _transactions.add(result);
-
-        _transactions.sort(
-          (a, b) => b.transactionDate.compareTo(a.transactionDate),
-        );
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Transaksi berhasil ditambahkan!')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Transaksi berhasil ditambahkan!'
+              : context.read<TransactionProvider>().errorMessage ??
+                    'Gagal menambahkan transaksi.',
+        ),
+      ),
+    );
   }
 
   Future<void> _openTransactionDetail(TransactionModel transaction) async {
@@ -83,96 +62,39 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
     if (!mounted || result == null) return;
 
-    setState(() {
-      if (result.isDeleted) {
-        _transactions.removeWhere((item) => item.id == transaction.id);
-      } else {
-        final updated = result.transaction;
+    final provider = context.read<TransactionProvider>();
+    bool success = false;
+    String message = '';
 
-        if (updated != null) {
-          final index = _transactions.indexWhere(
-            (item) => item.id == updated.id,
-          );
+    if (result.isDeleted) {
+      success = await provider.deleteTransaction(transaction.id);
+      message = success
+          ? 'Transaksi berhasil dihapus!'
+          : provider.errorMessage ?? 'Gagal menghapus transaksi.';
+    } else if (result.transaction != null) {
+      success = await provider.updateTransaction(result.transaction!);
+      message = success
+          ? 'Data transaksi berhasil diperbarui!'
+          : provider.errorMessage ?? 'Gagal memperbarui transaksi.';
+    }
 
-          if (index != -1) {
-            _transactions[index] = updated;
-          }
-        }
-      }
+    if (!mounted) return;
 
-      _transactions.sort(
-        (a, b) => b.transactionDate.compareTo(a.transactionDate),
-      );
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          result.isDeleted
-              ? 'Transaksi berhasil dihapus!'
-              : 'Data transaksi berhasil diperbarui!',
-        ),
-      ),
-    );
+    if (message.isNotEmpty) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final provider = context.watch<TransactionProvider>();
+    final transactions = provider.transactions;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Transaksi'), centerTitle: false),
 
-      body: _transactions.isEmpty
-          ? _buildEmptyState(context)
-          : ListView(
-              padding: const EdgeInsets.all(20),
-              children: [
-                Text(
-                  'Riwayat Transaksi',
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  '${_transactions.length} transaksi tercatat',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                _buildSummary(context),
-
-                const SizedBox(height: 24),
-
-                Text(
-                  'Semua Transaksi',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                ..._transactions.map(
-                  (transaction) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: InkWell(
-                      onTap: () => _openTransactionDetail(transaction),
-                      borderRadius: BorderRadius.circular(12),
-                      child: TransactionCard(
-                        title: transaction.title,
-                        category: transaction.category,
-                        date: _formatDate(transaction.transactionDate),
-                        amount: _formatAmount(transaction.amount),
-                        isIncome: transaction.isIncome,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      body: _buildBody(context, provider, transactions),
 
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _openAddTransaction,
@@ -182,12 +104,158 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  Widget _buildSummary(BuildContext context) {
-    final totalIncome = _transactions
+  Widget _buildBody(
+    BuildContext context,
+    TransactionProvider provider,
+    List<TransactionModel> transactions,
+  ) {
+    if (provider.isLoading && transactions.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (provider.errorMessage != null && transactions.isEmpty) {
+      return _buildErrorState(context, provider);
+    }
+
+    if (transactions.isEmpty) {
+      return _buildEmptyState(context);
+    }
+
+    final theme = Theme.of(context);
+
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        if (provider.isLoading) const LinearProgressIndicator(),
+
+        Text(
+          'Riwayat Transaksi',
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '${transactions.length} transaksi tercatat',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        const SizedBox(height: 20),
+
+        _buildSummary(context, transactions),
+
+        const SizedBox(height: 24),
+
+        Text(
+          'Semua Transaksi',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        ...transactions.map(
+          (transaction) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: InkWell(
+              onTap: () => _openTransactionDetail(transaction),
+              borderRadius: BorderRadius.circular(12),
+              child: TransactionCard(
+                title: transaction.title,
+                category: transaction.category,
+                date: _formatDate(transaction.transactionDate),
+                amount: _formatAmount(transaction.amount),
+                isIncome: transaction.isIncome,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, TransactionProvider provider) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.cloud_off_outlined,
+              size: 56,
+              color: theme.colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Gagal Memuat Transaksi',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              provider.errorMessage ?? 'Terjadi kesalahan.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: provider.fetchTransactions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Coba Lagi'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 64,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Belum Ada Transaksi',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Transaksi yang kamu tambahkan akan muncul di sini.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummary(
+    BuildContext context,
+    List<TransactionModel> transactions,
+  ) {
+    final totalIncome = transactions
         .where((transaction) => transaction.isIncome)
         .fold<double>(0, (total, transaction) => total + transaction.amount);
 
-    final totalExpense = _transactions
+    final totalExpense = transactions
         .where((transaction) => transaction.isExpense)
         .fold<double>(0, (total, transaction) => total + transaction.amount);
 
@@ -246,39 +314,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Belum Ada Transaksi',
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Transaksi yang kamu tambahkan akan muncul di sini.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
-        ),
       ),
     );
   }
