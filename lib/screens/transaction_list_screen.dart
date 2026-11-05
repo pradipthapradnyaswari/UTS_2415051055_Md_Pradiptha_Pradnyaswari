@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'transaction_detail_screen.dart';
 import '../models/transaction_model.dart';
 import '../utils/formatters.dart';
 import '../widgets/transaction_card.dart';
@@ -72,6 +73,35 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
+  Future<void> _openTransactionDetail(TransactionModel transaction) async {
+    final result = await Navigator.push<TransactionModel>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TransactionDetailScreen(transaction: transaction),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result != null) {
+      setState(() {
+        final index = _transactions.indexWhere((item) => item.id == result.id);
+
+        if (index != -1) {
+          _transactions[index] = result;
+        }
+
+        _transactions.sort(
+          (a, b) => b.transactionDate.compareTo(a.transactionDate),
+        );
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Data transaksi berhasil diperbarui!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -114,12 +144,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                 ..._transactions.map(
                   (transaction) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: TransactionCard(
-                      title: transaction.title,
-                      category: transaction.category,
-                      date: _formatDate(transaction.transactionDate),
-                      amount: _formatAmount(transaction.amount),
-                      isIncome: transaction.isIncome,
+                    child: InkWell(
+                      onTap: () => _openTransactionDetail(transaction),
+                      borderRadius: BorderRadius.circular(12),
+                      child: TransactionCard(
+                        title: transaction.title,
+                        category: transaction.category,
+                        date: _formatDate(transaction.transactionDate),
+                        amount: _formatAmount(transaction.amount),
+                        isIncome: transaction.isIncome,
+                      ),
                     ),
                   ),
                 ),
