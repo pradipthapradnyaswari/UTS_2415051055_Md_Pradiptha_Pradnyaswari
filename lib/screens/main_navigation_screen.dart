@@ -6,6 +6,7 @@ import '../widgets/bottom_nav_bar.dart';
 import 'home_screen.dart';
 import 'transaction_list_screen.dart';
 import 'analysis_screen.dart';
+import 'categories_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -32,7 +33,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     const HomeScreen(),
     const AnalysisScreen(),
     const TransactionListScreen(),
-    const _PlaceholderScreen(title: 'Kategori', icon: Icons.category_outlined),
+    const CategoriesScreen(),
     const _PlaceholderScreen(title: 'Profil', icon: Icons.person_outline),
   ];
 
