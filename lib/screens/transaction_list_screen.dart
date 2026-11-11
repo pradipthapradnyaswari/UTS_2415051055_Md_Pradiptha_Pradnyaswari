@@ -98,26 +98,64 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
+  Future<void> _confirmDeleteTransaction(TransactionModel transaction) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Transaksi?'),
+          content: Text(
+            'Apakah kamu yakin ingin menghapus transaksi '
+            '"${transaction.title}"?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Batal'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Hapus'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted || confirmed != true) return;
+
+    final provider = context.read<TransactionProvider>();
+    final success = await provider.deleteTransaction(transaction.id);
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          success
+              ? 'Transaksi berhasil dihapus!'
+              : provider.errorMessage ?? 'Gagal menghapus transaksi.',
+        ),
+      ),
+    );
+  }
+
   List<TransactionModel> _filterTransactions(
     List<TransactionModel> transactions,
   ) {
     return transactions.where((transaction) {
-      // Filter berdasarkan nama transaksi
       final query = _searchController.text.trim().toLowerCase();
       final matchesSearch = transaction.title.toLowerCase().contains(query);
 
-      // Filter berdasarkan jenis transaksi
       final matchesType =
           _selectedType == 'all' ||
           (_selectedType == 'income' && transaction.isIncome) ||
           (_selectedType == 'expense' && transaction.isExpense);
 
-      // Filter berdasarkan kategori
       final matchesCategory =
           _selectedCategory == null ||
           transaction.category == _selectedCategory;
 
-      // Filter berdasarkan rentang tanggal
       bool matchesDate = true;
 
       if (_selectedDateRange != null) {
@@ -138,16 +176,33 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }).toList();
   }
 
-  Widget _buildFilterChip({required String label, required String value}) {
-    return ChoiceChip(
-      label: Text(label),
+  Widget _buildFilterChip({
+    required String label,
+    required String value,
+    bool expanded = false,
+  }) {
+    final chip = ChoiceChip(
+      label: expanded
+          ? SizedBox(
+              width: double.infinity,
+              child: Center(child: Text(label)),
+            )
+          : Text(label),
       selected: _selectedType == value,
+      showCheckmark: false,
+      padding: const EdgeInsets.symmetric(horizontal: 10),
       onSelected: (selected) {
         setState(() {
           _selectedType = value;
         });
       },
     );
+
+    if (expanded) {
+      return SizedBox(width: double.infinity, child: chip);
+    }
+
+    return chip;
   }
 
   @override
@@ -254,15 +309,52 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
                 const SizedBox(height: 16),
 
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    _buildFilterChip(label: 'Semua', value: 'all'),
-                    _buildFilterChip(label: 'Pemasukan', value: 'income'),
-                    _buildFilterChip(label: 'Pengeluaran', value: 'expense'),
-                  ],
-                ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth >= 600) {
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _buildFilterChip(
+                              label: 'Semua',
+                              value: 'all',
+                              expanded: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildFilterChip(
+                              label: 'Pemasukan',
+                              value: 'income',
+                              expanded: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildFilterChip(
+                              label: 'Pengeluaran',
+                              value: 'expense',
+                              expanded: true,
+                            ),
+                          ),
+                        ],
+                      );
+                    }
 
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _buildFilterChip(label: 'Semua', value: 'all'),
+                        _buildFilterChip(label: 'Pemasukan', value: 'income'),
+                        _buildFilterChip(
+                          label: 'Pengeluaran',
+                          value: 'expense',
+                        ),
+                      ],
+                    );
+                  },
+                ),
                 const SizedBox(height: 16),
 
                 DropdownButtonFormField<String>(
@@ -384,6 +476,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
                       return InkWell(
                         onTap: () => _openTransactionDetail(transaction),
+                        onLongPress: () =>
+                            _confirmDeleteTransaction(transaction),
                         borderRadius: BorderRadius.circular(12),
                         child: TransactionCard(
                           title: transaction.title,

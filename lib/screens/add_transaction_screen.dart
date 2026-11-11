@@ -59,11 +59,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
       lastDate: DateTime.now(),
     );
 
-    if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    }
+    if (!mounted || pickedDate == null) return;
+
+    setState(() {
+      _selectedDate = pickedDate;
+    });
   }
 
   void _saveTransaction() {
@@ -179,7 +179,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
                     final amount = double.tryParse(value);
 
-                    if (amount == null || amount <= 0) {
+                    if (amount == null || !amount.isFinite || amount <= 0) {
                       return 'Masukkan nominal yang benar';
                     }
 

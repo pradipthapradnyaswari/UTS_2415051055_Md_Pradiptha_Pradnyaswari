@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/constants.dart';
+
 class ChartEntry {
   final String label;
   double income;
@@ -25,8 +27,11 @@ class ChartCard extends StatelessWidget {
       return current > maximum ? current : maximum;
     });
 
-    const incomeColor = Color(0xFF287C78);
-    const expenseColor = Color(0xFFA34C36);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final incomeColor = isDark ? AppColors.darkIncome : AppColors.income;
+
+    final expenseColor = isDark ? AppColors.darkExpense : AppColors.expense;
 
     return Card(
       elevation: 0,
@@ -42,7 +47,7 @@ class ChartCard extends StatelessWidget {
             Wrap(
               spacing: 20,
               runSpacing: 8,
-              children: const [
+              children: [
                 _ChartLegend(color: incomeColor, label: 'Pemasukan'),
                 _ChartLegend(color: expenseColor, label: 'Pengeluaran'),
               ],
@@ -95,7 +100,12 @@ class ChartCard extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 8),
-                          Text(entry.label, style: theme.textTheme.labelSmall),
+                          Text(
+                            entry.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelSmall,
+                          ),
                         ],
                       ),
                     );

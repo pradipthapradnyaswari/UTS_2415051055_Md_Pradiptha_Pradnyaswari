@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/transaction_provider.dart';
 import '../utils/formatters.dart';
 import '../widgets/chart_card.dart';
+import '../models/transaction_model.dart';
 
 enum AnalysisPeriod { daily, weekly, monthly, yearly }
 
@@ -54,7 +55,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     }
   }
 
-  List<ChartEntry> _createChartEntries(List<dynamic> transactions) {
+  List<ChartEntry> _createChartEntries(List<TransactionModel> transactions) {
     final now = DateTime.now();
 
     late List<String> labels;
@@ -154,7 +155,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
         builder: (context, constraints) {
           return Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 900),
+              constraints: const BoxConstraints(maxWidth: 1200),
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
@@ -165,30 +166,77 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
                   const SizedBox(height: 20),
 
-                  SegmentedButton<AnalysisPeriod>(
-                    segments: const [
-                      ButtonSegment(
-                        value: AnalysisPeriod.daily,
-                        label: Text('Harian'),
-                      ),
-                      ButtonSegment(
-                        value: AnalysisPeriod.weekly,
-                        label: Text('Mingguan'),
-                      ),
-                      ButtonSegment(
-                        value: AnalysisPeriod.monthly,
-                        label: Text('Bulanan'),
-                      ),
-                      ButtonSegment(
-                        value: AnalysisPeriod.yearly,
-                        label: Text('Tahunan'),
-                      ),
-                    ],
-                    selected: {_selectedPeriod},
-                    onSelectionChanged: (selection) {
-                      setState(() {
-                        _selectedPeriod = selection.first;
-                      });
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isPortraitPhone = constraints.maxWidth < 500;
+                      final crossAxisCount = isPortraitPhone ? 2 : 4;
+
+                      final periods = [
+                        (AnalysisPeriod.daily, 'Harian'),
+                        (AnalysisPeriod.weekly, 'Mingguan'),
+                        (AnalysisPeriod.monthly, 'Bulanan'),
+                        (AnalysisPeriod.yearly, 'Tahunan'),
+                      ];
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: periods.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          crossAxisSpacing: 8,
+                          mainAxisSpacing: 8,
+                          mainAxisExtent: 48,
+                        ),
+                        itemBuilder: (context, index) {
+                          final period = periods[index].$1;
+                          final label = periods[index].$2;
+                          final isSelected = _selectedPeriod == period;
+
+                          return Material(
+                            color: isSelected
+                                ? Theme.of(context)
+                                      .colorScheme
+                                      .secondaryContainer
+                                : Theme.of(context).colorScheme.surface,
+                            borderRadius: BorderRadius.circular(24),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(24),
+                              onTap: () {
+                                setState(() {
+                                  _selectedPeriod = period;
+                                });
+                              },
+                              child: Container(
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: isSelected
+                                        ? Theme.of(context)
+                                              .colorScheme
+                                              .secondary
+                                        : Theme.of(context).colorScheme.outline,
+                                  ),
+                                ),
+                                child: Text(
+                                  label,
+                                  maxLines: 1,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
                     },
                   ),
 

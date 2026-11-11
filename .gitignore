@@ -48,3 +48,7 @@ app.*.map.json
 .widget_preview/
 
 .vscode/launch.json
+
+# Environment variables and secrets
+.env*
+!.env.example

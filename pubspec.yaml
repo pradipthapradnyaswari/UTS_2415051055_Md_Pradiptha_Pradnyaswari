@@ -1,5 +1,5 @@
 name: finote
-description: "A new Flutter project."
+description: "Finote - Personal Finance Manager"
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -45,6 +45,7 @@ dependencies:
   flutter_local_notifications: ^22.3.3
 
 dev_dependencies:
+  flutter_launcher_icons: ^0.14.4
   flutter_test:
     sdk: flutter
 
@@ -65,6 +66,10 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/data/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
@@ -96,3 +101,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: true
+  image_path: "assets/images/finote_icon.png"
+  min_sdk_android: 21
+  adaptive_icon_background: "#087B83"
+  adaptive_icon_foreground: "assets/images/finote_icon.png"

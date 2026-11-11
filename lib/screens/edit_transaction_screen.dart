@@ -60,7 +60,9 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
     _noteController = TextEditingController(text: transaction.note);
 
     _selectedType = transaction.type;
-    _selectedCategory = transaction.category;
+    _selectedCategory = _categories.contains(transaction.category)
+        ? transaction.category
+        : _categories.first;
     _selectedDate = transaction.transactionDate;
   }
 
@@ -80,11 +82,11 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
       lastDate: DateTime.now(),
     );
 
-    if (pickedDate != null) {
-      setState(() {
-        _selectedDate = pickedDate;
-      });
-    }
+    if (!mounted || pickedDate == null) return;
+
+    setState(() {
+      _selectedDate = pickedDate;
+    });
   }
 
   void _saveChanges() {
@@ -182,7 +184,7 @@ class _EditTransactionScreenState extends State<EditTransactionScreen> {
 
                     final amount = double.tryParse(value);
 
-                    if (amount == null || amount <= 0) {
+                    if (amount == null || !amount.isFinite || amount <= 0) {
                       return 'Masukkan nominal yang valid';
                     }
 

@@ -35,7 +35,7 @@ class TransactionProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
-  List<TransactionModel> get transactions => _transactions;
+  List<TransactionModel> get transactions => List.unmodifiable(_transactions);
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
@@ -56,6 +56,8 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<bool> addTransaction(TransactionModel transaction) async {
+    _errorMessage = null;
+    notifyListeners();
     try {
       final newTransaction = await _repository.addTransaction(transaction);
 
@@ -78,6 +80,8 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<bool> updateTransaction(TransactionModel transaction) async {
+    _errorMessage = null;
+    notifyListeners();
     try {
       final updatedTransaction = await _repository.updateTransaction(
         transaction,
@@ -109,6 +113,8 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   Future<bool> deleteTransaction(String id) async {
+    _errorMessage = null;
+    notifyListeners();
     try {
       final matchingTransactions = _transactions.where((item) => item.id == id);
 
@@ -138,8 +144,17 @@ class TransactionProvider extends ChangeNotifier {
   }
 
   void _sortTransactions() {
-    _transactions.sort(
-      (a, b) => b.transactionDate.compareTo(a.transactionDate),
-    );
+    _transactions.sort((a, b) {
+      final dateComparison = b.transactionDate.compareTo(a.transactionDate);
+
+      if (dateComparison != 0) {
+        return dateComparison;
+      }
+
+      final aCreatedAt = a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final bCreatedAt = b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+
+      return bCreatedAt.compareTo(aCreatedAt);
+    });
   }
 }

@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "title": "Catat Pengeluaran",
+    "description": "Biasakan mencatat setiap pengeluaran agar kamu mengetahui ke mana uang digunakan.",
+    "category": "Pencatatan"
+  },
+  {
+    "id": 2,
+    "title": "Buat Anggaran Bulanan",
+    "description": "Tentukan batas pengeluaran untuk kebutuhan, keinginan, dan tabungan setiap bulan.",
+    "category": "Perencanaan"
+  },
+  {
+    "id": 3,
+    "title": "Sisihkan Uang untuk Menabung",
+    "description": "Sisihkan sebagian pendapatan di awal sebelum menggunakan uang untuk kebutuhan lainnya.",
+    "category": "Tabungan"
+  },
+  {
+    "id": 4,
+    "title": "Bedakan Kebutuhan dan Keinginan",
+    "description": "Dahulukan kebutuhan utama sebelum membeli barang yang hanya diinginkan.",
+    "category": "Pengelolaan"
+  }
+]

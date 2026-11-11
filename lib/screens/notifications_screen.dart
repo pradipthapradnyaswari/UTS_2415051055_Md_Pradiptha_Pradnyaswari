@@ -12,6 +12,8 @@ class NotificationsScreen extends StatelessWidget {
     final notifications = provider.notifications;
     final theme = Theme.of(context);
 
+    final isCompact = MediaQuery.sizeOf(context).width < 600;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -20,16 +22,24 @@ class NotificationsScreen extends StatelessWidget {
         ),
         actions: [
           if (provider.unreadCount > 0)
-            TextButton(
-              onPressed: provider.markAllAsRead,
-              child: const Text('Tandai semua dibaca'),
-            ),
+            isCompact
+                ? IconButton(
+                    tooltip: 'Tandai semua dibaca',
+                    onPressed: provider.markAllAsRead,
+                    icon: const Icon(Icons.done_all),
+                  )
+                : TextButton.icon(
+                    onPressed: provider.markAllAsRead,
+                    icon: const Icon(Icons.done_all),
+                    label: const Text('Tandai semua dibaca'),
+                  ),
           if (notifications.isNotEmpty)
             IconButton(
               tooltip: 'Hapus semua notifikasi',
               icon: const Icon(Icons.delete_outline),
               onPressed: () => _confirmClear(context),
             ),
+          const SizedBox(width: 4),
         ],
       ),
       body: notifications.isEmpty

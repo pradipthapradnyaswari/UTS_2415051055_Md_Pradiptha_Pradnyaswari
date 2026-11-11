@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import '../providers/exchange_rate_provider.dart';
 
@@ -66,7 +67,7 @@ class ExchangeRateCard extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                'Terakhir diperbarui: ${exchangeRate.lastUpdateUtc}',
+                'Terakhir diperbarui: ${_formatUpdateTime(exchangeRate.lastUpdateUtc)}',
                 style: TextStyle(
                   fontSize: 11,
                   color: theme.colorScheme.onSurfaceVariant,
@@ -110,6 +111,42 @@ class ExchangeRateCard extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _formatUpdateTime(String utcTime) {
+    try {
+      final dateString = utcTime.substring(0, utcTime.lastIndexOf(' '));
+
+      final dateTime = DateFormat(
+        'EEE, dd MMM yyyy HH:mm:ss',
+        'en_US',
+      ).parseUtc(dateString).toLocal();
+
+      const months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'Mei',
+        'Jun',
+        'Jul',
+        'Agu',
+        'Sep',
+        'Okt',
+        'Nov',
+        'Des',
+      ];
+
+      final day = dateTime.day.toString().padLeft(2, '0');
+      final month = months[dateTime.month - 1];
+      final year = dateTime.year;
+      final hour = dateTime.hour.toString().padLeft(2, '0');
+      final minute = dateTime.minute.toString().padLeft(2, '0');
+
+      return '$day $month $year, $hour:$minute ${dateTime.timeZoneName}';
+    } catch (e) {
+      return utcTime;
+    }
   }
 
   String _formatRate(double rate) {

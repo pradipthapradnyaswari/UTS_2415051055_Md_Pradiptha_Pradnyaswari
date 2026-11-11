@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/theme_provider.dart';
+import '../main.dart';
+import '../models/feedback_model.dart';
+import '../repositories/feedback_repository.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -117,6 +120,23 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showFeedbackDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return _FeedbackDialog(
+          onSubmitted: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Terima kasih! Masukan berhasil dikirim.'),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -131,26 +151,24 @@ class ProfileScreen extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 38,
-                    backgroundColor: Theme.of(context)
-                        .colorScheme
-                        .primaryContainer,
-                    child: Icon(
-                      Icons.person_outline,
-                      size: 42,
-                      color: Theme.of(context).colorScheme.primary,
+                  ClipOval(
+                    child: Image.asset(
+                      'assets/images/profil.jpg',
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Pengguna Finote',
+                    studentName,
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Pengelola Keuangan Pribadi',
+                    'NIM: $studentId',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                 ],
@@ -192,6 +210,14 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 ListTile(
+                  leading: const Icon(Icons.rate_review_outlined),
+                  title: const Text('Kirim Masukan'),
+                  subtitle: const Text('Berikan saran untuk Finote'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => _showFeedbackDialog(context),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.info_outline),
                   title: const Text('Tentang Finote'),
                   trailing: const Icon(Icons.chevron_right),
@@ -215,6 +241,163 @@ class ProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _FeedbackDialog extends StatefulWidget {
+  final VoidCallback onSubmitted;
+
+  const _FeedbackDialog({required this.onSubmitted});
+
+  @override
+  State<_FeedbackDialog> createState() => _FeedbackDialogState();
+}
+
+class _FeedbackDialogState extends State<_FeedbackDialog> {
+  final _formKey = GlobalKey<FormState>();
+  bool _isSubmitting = false;
+
+  final FeedbackRepository _feedbackRepository = FeedbackRepository();
+
+  late final TextEditingController _nameController;
+  late final TextEditingController _nimController;
+  late final TextEditingController _commentController;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _nameController = TextEditingController(text: studentName);
+    _nimController = TextEditingController(text: studentId);
+    _commentController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nimController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitFeedback() async {
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
+    }
+
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      final feedback = FeedbackModel(
+        name: _nameController.text.trim(),
+        studentId: _nimController.text.trim(),
+        comment: _commentController.text.trim(),
+      );
+
+      await _feedbackRepository.submitFeedback(feedback);
+
+      if (!mounted) return;
+
+      Navigator.of(context).pop();
+      widget.onSubmitted();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Gagal mengirim masukan: $e')));
+
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Kirim Masukan'),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.55,
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextFormField(
+                    controller: _nimController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'NIM',
+                      prefixIcon: Icon(Icons.badge_outlined),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  TextFormField(
+                    controller: _commentController,
+                    maxLines: 4,
+                    minLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Komentar',
+                      hintText: 'Tulis masukan kamu di sini...',
+                      prefixIcon: Icon(Icons.comment_outlined),
+                      alignLabelWithHint: true,
+                      border: OutlineInputBorder(),
+                      errorMaxLines: 2,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Komentar wajib diisi';
+                      }
+
+                      if (value.trim().length < 5) {
+                        return 'Komentar minimal 5 karakter';
+                      }
+
+                      return null;
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Batal'),
+        ),
+        FilledButton(
+          onPressed: _isSubmitting ? null : _submitFeedback,
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Text('Kirim'),
+        ),
+      ],
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/constants.dart';
+
 class TransactionCard extends StatelessWidget {
   final String title;
   final String category;
@@ -18,7 +20,11 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isIncome ? const Color(0xFF287C78) : const Color(0xFFA34C36);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final color = isIncome
+        ? (isDark ? AppColors.darkIncome : AppColors.income)
+        : (isDark ? AppColors.darkExpense : AppColors.expense);
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
@@ -29,7 +35,12 @@ class TransactionCard extends StatelessWidget {
           color: color,
         ),
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(
+        title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       subtitle: Text('$category • $date'),
       trailing: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -37,6 +48,8 @@ class TransactionCard extends StatelessWidget {
         children: [
           Text(
             '${isIncome ? '+' : '-'}$amount',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(color: color, fontWeight: FontWeight.bold),
           ),
           Text(

@@ -63,7 +63,6 @@ class AppTheme {
     );
   }
 
-  // DARK THEME
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,

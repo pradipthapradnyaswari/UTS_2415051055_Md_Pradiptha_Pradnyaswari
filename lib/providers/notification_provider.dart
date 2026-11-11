@@ -18,12 +18,12 @@ class NotificationProvider extends ChangeNotifier {
       _notifications.where((notification) => !notification.isRead).length;
 
   Future<void> loadNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedData = prefs.getString(_storageKey);
-
-    if (savedData == null) return;
-
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedData = prefs.getString(_storageKey);
+
+      if (savedData == null) return;
+
       final List<dynamic> decodedData = jsonDecode(savedData);
 
       _notifications
@@ -43,13 +43,17 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> _saveNotifications() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    final encodedData = jsonEncode(
-      _notifications.map((notification) => notification.toJson()).toList(),
-    );
+      final encodedData = jsonEncode(
+        _notifications.map((notification) => notification.toJson()).toList(),
+      );
 
-    await prefs.setString(_storageKey, encodedData);
+      await prefs.setString(_storageKey, encodedData);
+    } catch (e) {
+      debugPrint('Gagal menyimpan riwayat notifikasi: $e');
+    }
   }
 
   Future<void> addNotification({

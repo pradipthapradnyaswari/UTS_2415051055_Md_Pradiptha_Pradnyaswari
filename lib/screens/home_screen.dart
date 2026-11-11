@@ -10,6 +10,8 @@ import '../widgets/transaction_card.dart';
 import '../widgets/exchange_rate_card.dart';
 import '../providers/notification_provider.dart';
 import 'notifications_screen.dart';
+import '../widgets/financial_tips_section.dart';
+import '../main.dart';
 
 class HomeScreen extends StatelessWidget {
   final VoidCallback onViewAllTransactions;
@@ -71,7 +73,7 @@ class HomeScreen extends StatelessWidget {
               ? constraints.maxWidth
               : screenWidth;
 
-          final contentWidth = measuredWidth > 900 ? 900.0 : measuredWidth;
+          final contentWidth = measuredWidth > 1200 ? 1200.0 : measuredWidth;
 
           final availableWidth = (contentWidth - 40)
               .clamp(0.0, double.infinity)
@@ -94,21 +96,50 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Halo, selamat datang!',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Yuk, pantau kondisi keuanganmu hari ini.',
-                        style: TextStyle(
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.7,
+                      Row(
+                        children: [
+                          ClipOval(
+                            child: Image.asset(
+                              'assets/images/profil.jpg',
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.cover,
+                            ),
                           ),
-                        ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Halo, $studentName!',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'NIM: $studentId',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Yuk, pantau kondisi keuanganmu hari ini.',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.7),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 24),
@@ -155,6 +186,10 @@ class HomeScreen extends StatelessWidget {
                       const SizedBox(height: 24),
 
                       const ExchangeRateCard(),
+
+                      const SizedBox(height: 28),
+
+                      const FinancialTipsSection(),
 
                       const SizedBox(height: 28),
 

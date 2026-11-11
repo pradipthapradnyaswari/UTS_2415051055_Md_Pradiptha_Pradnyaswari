@@ -13,48 +13,53 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   Future<void> _loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
-    final savedTheme = prefs.getString(_themeKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedTheme = prefs.getString(_themeKey);
 
-    if (savedTheme == null) return;
+      switch (savedTheme) {
+        case 'light':
+          _themeMode = ThemeMode.light;
+          break;
+        case 'dark':
+          _themeMode = ThemeMode.dark;
+          break;
+        default:
+          _themeMode = ThemeMode.system;
+      }
 
-    switch (savedTheme) {
-      case 'light':
-        _themeMode = ThemeMode.light;
-        break;
-      case 'dark':
-        _themeMode = ThemeMode.dark;
-        break;
-      default:
-        _themeMode = ThemeMode.system;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Gagal memuat preferensi tema: $e');
     }
-
-    notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode == mode) return;
 
-    _themeMode = mode;
+    try {
+      final prefs = await SharedPreferences.getInstance();
 
-    final prefs = await SharedPreferences.getInstance();
+      String themeValue;
 
-    String themeValue;
+      switch (mode) {
+        case ThemeMode.light:
+          themeValue = 'light';
+          break;
+        case ThemeMode.dark:
+          themeValue = 'dark';
+          break;
+        case ThemeMode.system:
+          themeValue = 'system';
+          break;
+      }
 
-    switch (mode) {
-      case ThemeMode.light:
-        themeValue = 'light';
-        break;
-      case ThemeMode.dark:
-        themeValue = 'dark';
-        break;
-      case ThemeMode.system:
-        themeValue = 'system';
-        break;
+      await prefs.setString(_themeKey, themeValue);
+
+      _themeMode = mode;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Gagal menyimpan preferensi tema: $e');
     }
-
-    await prefs.setString(_themeKey, themeValue);
-
-    notifyListeners();
   }
 }
